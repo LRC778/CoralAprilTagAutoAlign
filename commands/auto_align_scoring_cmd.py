@@ -6,7 +6,7 @@ from wpilib import SmartDashboard as sd
 import time
 
 class AutoAlignScoringCommand(Command):
-    def __init__(self, drivetrain:DriveSubsystem, scoring_mode, tolerance_tx, tolerance_ty, targetTag):
+    def __init__(self, drivetrain:DriveSubsystem, scoring_mode, tolerance_tx, tolerance_ty):   #, targetTag):
         """
         Aligns the robot so that the Limelight's tx and ty values reach the ideal values for scoring.
         
@@ -21,7 +21,7 @@ class AutoAlignScoringCommand(Command):
         self.tolerance_tx = tolerance_tx
         self.tolerance_ty = tolerance_ty
         self.scoring_mode = scoring_mode
-        self.targetTag = targetTag
+		#self.targetTag = targetTag
         
         # Set desired setpoints based on scoring mode.
         if self.scoring_mode == 'left':
@@ -34,39 +34,39 @@ class AutoAlignScoringCommand(Command):
             self.desired_tx = 0
             self.desired_ty = 0
 
-        # PID controller for turning (using tx error).
-        # kp = sd.putNumber("turn p", 0.024)
-        # ki = sd.putNumber("turn i", 0.0)
-        # kd = sd.putNumber("turn d", 0.0023)
+        '''PID controller for turning (using tx error).'''
         self.turnPID = PIDController(0.024, 0, 0.0023)
         self.turnPID.setSetpoint(self.desired_tx)
-        # sd.putData("turn controller", self.turnPID)
+		# How you expose the PID controller to your sd
+        sd.putData("turn controller", self.turnPID)
         
-        # Proportional constant for forward drive based on ty error.
-        # dp = sd.putNumber("drive p", 0.0054)
-        # di = sd.putNumber("drive i", 0.0)
-        # dd = sd.putNumber("drive d", 0.0061)
+        '''Proportional constant for forward drive based on ty error.'''
         self.drivePID = PIDController(0.054, 0, 0.0061)
         self.drivePID.setSetpoint(self.desired_ty)
-        # sd.putData("drive controller", self.drivePID)
+		# How you expose the PID controller to your sd
+        sd.putData("drive controller", self.drivePID) 
 
         self.start_time = 0
+
+        # self.tid = 
+        # sd.putNumber("tid", self.tid)
 
         self.addRequirements(self.drivetrain)
 
     def initialize(self):
-        # print(f"AutoAlignScoringCommand: Initializing with desired tx = {self.desired_tx}, desired ty = {self.desired_ty}")
+        print(f"AutoAlignScoringCommand: Initializing with desired tx = {self.desired_tx}, desired ty = {self.desired_ty}")
+
         self.start_time = time.time()
 
     def execute(self):
-        # # Get current tx and ty from Limelight
+        # Get current tx and ty from Limelight
         current_tx = self.table.getNumber("tx", 0)
         current_ty = self.table.getNumber("ty", 0)
         current_tv = self.table.getNumber("tv", 0)
         current_tid = self.table.getNumber("tid", 0)
         
         elapsed_time = time.time() - self.start_time
-
+       
         error_tx = self.desired_tx - current_tx
         error_ty = self.desired_ty - current_ty
         sd.putNumber("error_tx", error_tx)
@@ -78,8 +78,6 @@ class AutoAlignScoringCommand(Command):
 
         # Compute forward correction using a simple proportional controller on ty error.
         # The negative sign may be needed depending on the camera's coordinate convention.
-        # forward_correction = error_ty * self.kP_fwd
-
         forward_correction = self.drivePID.calculate(current_ty)  # Limits forward speed to ±0.3
         forward = max(min(forward_correction, 0.15), -0.15)
 
@@ -88,6 +86,11 @@ class AutoAlignScoringCommand(Command):
         if current_tv >= 1.0 and current_tid == self.targetTag:
             # print("I see my target...")
             self.drivetrain.drive(-forward, turn_correction * 0.25, -turn_correction * 0.03, False)
+            # print(f"AutoAlignScoringCommand: current_tx = {current_tx} error_tx = {error_tx}, turn_correction = {turn_correction}")
+            # print(f"                     current_ty = {current_ty}, error_ty = {error_ty}, forward_correction = {forward}")
+		#if current_tv >= 1.0:
+            # print("I see my target...")
+            #self.drivetrain.drive(-forward, turn_correction * 0.25, -turn_correction * 0.03, False)
             # print(f"AutoAlignScoringCommand: current_tx = {current_tx} error_tx = {error_tx}, turn_correction = {turn_correction}")
             # print(f"                     current_ty = {current_ty}, error_ty = {error_ty}, forward_correction = {forward}")
         elif current_tv == 0:
