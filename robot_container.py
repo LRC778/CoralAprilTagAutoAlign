@@ -25,6 +25,7 @@ from commands.coral_cmds import IntakeToZero, ScoreCoralL2, ScoreCoralL3, Intake
 # from commands.algae_cmds import AlgaeLoadCommand, AlgaeScoreCommand, AlgaeZeroCommand, AlgaeOnCommand, AlgaeCoralCommand
 from commands.auto_routine_with_camera import SimpleScoreAutoRIGHT, SimpleScoreAutoLEFT
 from commands.teleop_align_scoring_cmd import TeleopAlignScoringCommand
+from commands.auto_align_scoring_cmd import AutoAlignScoringCommand
 from commands.auto_routines import SimpleAuto
 
 class RobotContainer:
@@ -138,3 +139,4 @@ class RobotContainer:
         """Selects and returns the autonomous command based on the chooser settings."""
         auto = self.auto_chooser.getSelected()
         return auto
+        #return AutoAlignScoringCommand(drivetrain, 'left', 2.5, 2.0)
