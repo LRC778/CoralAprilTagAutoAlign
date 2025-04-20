@@ -21,7 +21,7 @@ class AutoAlignScoringCommand(Command):
         self.tolerance_tx = tolerance_tx
         self.tolerance_ty = tolerance_ty
         self.scoring_mode = scoring_mode
-		#self.targetTag = targetTag
+	#self.targetTag = targetTag
         
         # Set desired setpoints based on scoring mode.
         if self.scoring_mode == 'left':
